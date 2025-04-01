@@ -11,25 +11,25 @@ const ZAPIER_WEBHOOK_URL = process.env.ZAPIER_WEBHOOK_URL; // Use your Zapier we
 app.post('/find-client', async (req, res) => {
     try {
         const { phone_number } = req.body;
+        const { data } = req.body; // Extract data from query parameters
 
-        if (!phone_number) {
-            return res.status(400).json({ error: 'Phone number is required' });
+        if (phone_number) {
+          const response = await axios.post(ZAPIER_WEBHOOK_URL, { phone_number });
+          console.log('✅ Data sent to Zapier:', response.data);
+        }
+        else if (data) {
+          res.json({ message: 'Data received', data });
+        }
+        else {
+          res.status(400).json({ error: 'Invalid request' });
         }
 
-        console.log(`🔍 Searching for client with phone: ${phone_number}`);
-
-        // Forward request to Zapier
-        const response = await axios.post(ZAPIER_WEBHOOK_URL, { phone_number });
-
-        console.log('✅ Response from Zapier:', response.data);
-
-        // Send data back to SynthFlow
-        res.json(response.data);
     } catch (error) {
         console.error('❌ Error:', error.response?.data || error.message);
         res.status(500).json({ error: 'Failed to process request' });
     }
 });
+
 
 // Start the server
 const PORT = process.env.PORT || 5000;
